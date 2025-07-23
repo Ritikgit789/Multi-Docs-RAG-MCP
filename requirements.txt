@@ -1,0 +1,12 @@
+streamlit
+python-docx
+python-pptx
+pandas
+PyMuPDF
+markdown
+openai
+faiss-cpu
+sentence-transformers
+tiktoken
+python-dotenv
+google-generativeai
