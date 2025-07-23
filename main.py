@@ -1,6 +1,7 @@
 # main.py
 
 from core_mcp.mcp import MCPMessage
+from agents.ingestion_agent import run_ingestion_agent
 
 def test_mcp_message():
     # Simulate IngestionAgent sending chunks to IndexAgent
@@ -27,5 +28,11 @@ def test_mcp_message():
     print("✅ Generated MCP Message (IngestionAgent → IndexAgent):")
     print(message.to_json())
 
+# if __name__ == "__main__":
+#     test_mcp_message()
+
 if __name__ == "__main__":
-    test_mcp_message()
+    file_path = "documents/doc.txt"  # put any supported file here
+    message = run_ingestion_agent(file_path, receiver_agent="IndexAgent")
+    print("✅ Generated MCP Message (IngestionAgent → IndexAgent):")
+    print(message.to_json())
