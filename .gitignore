@@ -6,3 +6,7 @@ __pycache__/
 .vscode/
 # *.ipynb
 ragenv/
+vector_index.faiss
+chunk_metadata.json
+sample_retrieval_message.json
+sample_index_message.json

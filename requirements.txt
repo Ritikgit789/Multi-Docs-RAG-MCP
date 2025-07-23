@@ -11,3 +11,4 @@ tiktoken
 python-dotenv
 google-generativeai
 nltk
+chromadb
