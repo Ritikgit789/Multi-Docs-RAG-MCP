@@ -1,41 +1,49 @@
-# agents/retrievalagent.py
-
+import json
 import faiss
-import pickle
 import numpy as np
 from utils.embedding import get_embedding
-import json
 
 def handle_retrieval_message(mcp_message):
-    print("\n🔍 [RetrievalAgent] Received MCP message:")
+    payload = mcp_message["payload"]
+    query = payload["query"]
+
+    print("🔍 [RetrievalAgent] Received MCP message:")
     print(json.dumps(mcp_message, indent=2))
 
-    query = mcp_message["payload"]["query"]
-    trace_id = mcp_message["trace_id"]
+    # ✅ Load FAISS index
+    index = faiss.read_index("vector_index.faiss")
+    dim = index.d
+    print("FAISS index dimension:", dim)
 
-    embedding = get_embedding(query)
-    embedding = np.array(embedding).astype("float32").reshape(1, -1)
+    # ✅ Load metadata
+    with open("chunk_metadata.json", "r") as f:
+        metadata = json.load(f)
 
-    # Load FAISS index and doc map
-    index = faiss.read_index("D:/SLRIS/agents/vector_index.faiss")
-    with open("chunk_metadata.json", "r", encoding="utf-8") as f:
-        doc_store = json.load(f)
+    # ✅ Embed the query
+    query_embedding = get_embedding(query)
+    query_vector = np.array([query_embedding], dtype="float32")
+    print("Query embedding shape:", query_vector.shape)
 
-    print("Query embedding shape:", embedding.shape)
-    print("FAISS index dimension:", index.d)
+    # 🔍 Search
+    k = 3  # top-k results
+    distances, indices = index.search(query_vector, k)
 
-    D, I = index.search(embedding, 5)  # top 5 results
-    retrieved_chunks = [doc_store[i] for i in I[0] if i in doc_store]
+    # ✅ Collect retrieved chunks
+    retrieved_chunks = []
+    for idx in indices[0]:
+        if idx < len(metadata):
+            retrieved_chunks.append(metadata[idx]["chunk"])
 
-    print(f"\n📦 Top retrieved chunks ({len(retrieved_chunks)}):")
-    for idx, chunk in enumerate(retrieved_chunks, 1):
-        print(f"{idx}. {chunk[:200]}...")
+    print(f"\n📦 Top retrieved chunks ({len(retrieved_chunks)}):\n")
+    for chunk in retrieved_chunks:
+        print("🔹", chunk)
 
-    response_msg = {
+    # ✅ Return MCP message to LLMResponseAgent
+    response = {
         "type": "RETRIEVAL_RESULT",
         "sender": "RetrievalAgent",
         "receiver": "LLMResponseAgent",
-        "trace_id": trace_id,
+        "trace_id": mcp_message["trace_id"],
         "payload": {
             "retrieved_context": retrieved_chunks,
             "query": query
@@ -43,11 +51,20 @@ def handle_retrieval_message(mcp_message):
     }
 
     print("\n✅ RetrievalAgent → LLMResponseAgent MCP Message:")
-    print(json.dumps(response_msg, indent=2))
-    return response_msg
+    print(json.dumps(response, indent=2))
 
+# -------------------------------
+# 🚀 Simulate retrieval from a query
+# -------------------------------
+# if __name__ == "__main__":
+#     test_message = {
+#         "type": "retrieve",
+#         "sender": "CoordinatorAgent",
+#         "receiver": "RetrievalAgent",
+#         "trace_id": "test-trace-002",
+#         "payload": {
+#             "query": "What KPIs were tracked in Q1?"
+#         }
+#     }
 
-if __name__ == "__main__":
-    with open("sample_retrieval_message.json", "r") as f:
-        mcp_message = json.load(f)
-    handle_retrieval_message(mcp_message)
+#     handle_retrieval_message(test_message)
