@@ -12,3 +12,14 @@ python-dotenv
 google-generativeai
 nltk
 chromadb
+langchain
+langchain-community
+langchain-core
+langchain-openai
+langchain-google-genai
+langchain-chroma
+langchain-community
+langchain-core
+langchain-openai
+langchain-google-genai
+langgraph
