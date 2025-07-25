@@ -26,7 +26,7 @@ def handle_retrieval_message(mcp_message):
     print("Query embedding shape:", query_vector.shape)
 
     # 🔍 Search
-    k = 3  # top-k results
+    k = 10  # top-k results (increase for more context)
     distances, indices = index.search(query_vector, k)
 
     # ✅ Collect retrieved chunks

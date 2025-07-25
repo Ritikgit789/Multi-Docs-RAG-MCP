@@ -22,7 +22,16 @@ def read_docx(path):
 
 def read_csv(path):
     df = pd.read_csv(path)
-    return df.to_string(index=False)
+    return df
+
+def chunk_csv_dataframe(df, rows_per_chunk=20):
+    chunks = []
+    for start in range(0, len(df), rows_per_chunk):
+        chunk_df = df.iloc[start:start+rows_per_chunk]
+        chunk_str = chunk_df.to_string(index=False)
+        if chunk_str.strip():
+            chunks.append(chunk_str)
+    return chunks
 
 def read_pptx(path):
     prs = Presentation(path)
@@ -74,6 +83,7 @@ def get_text_from_file(file_path):
     elif ext == ".docx":
         return read_docx(file_path)
     elif ext == ".csv":
+        # Return DataFrame for CSV
         return read_csv(file_path)
     elif ext == ".pptx":
         return read_pptx(file_path)
@@ -84,12 +94,16 @@ def get_text_from_file(file_path):
 
 def run_ingestion_agent(file_path, receiver_agent="IndexAgent"):
     try:
-        raw_text = get_text_from_file(file_path)
-
-        if HAS_TIKTOKEN:
-            chunks = split_into_chunks_tiktoken(raw_text)
+        ext = os.path.splitext(file_path)[-1].lower()
+        if ext == ".csv":
+            df = get_text_from_file(file_path)
+            chunks = chunk_csv_dataframe(df, rows_per_chunk=20)
         else:
-            chunks = split_into_chunks_line(raw_text)
+            raw_text = get_text_from_file(file_path)
+            if HAS_TIKTOKEN:
+                chunks = split_into_chunks_tiktoken(raw_text)
+            else:
+                chunks = split_into_chunks_line(raw_text)
 
         # Placeholder for embedding generation — replace with Gemini/Groq later
         embeddings = [None] * len(chunks)
