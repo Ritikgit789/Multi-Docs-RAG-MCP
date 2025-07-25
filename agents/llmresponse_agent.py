@@ -2,6 +2,9 @@ import json
 from utils.llm_call import call_llm_gemini
 from core_mcp.mcp import MCPMessage  # Make sure this is imported
 
+
+# Function to handle MCP message using Large Language Models
+
 def handle_llm_message(mcp_message):
     payload = mcp_message["payload"]  # FIXED: class property
     context_chunks = payload["retrieved_context"]
@@ -13,7 +16,7 @@ def handle_llm_message(mcp_message):
 
     # Strong Prompt
     prompt = f"""
-You are a focused and concise assistant, you can answer like an analyst, student, teacher, daat scientist, salesman and more
+You are a focused and concise assistant, you can answer like an analyst, student, teacher, data scientist, salesman and more
 
 Strictly follow these instructions:
 - Use only the information provided in the retrieved context below. Do not hallucinate or make assumptions.
